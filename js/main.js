@@ -118,7 +118,7 @@ function curvePoint(t) {
   return { ...p, alt: ARC_ALT * Math.sin(Math.PI * t) };
 }
 
-const TRACK_N = 72;
+const TRACK_N = 96;
 const trackPts = Array.from({ length: TRACK_N + 1 }, (_, i) => curvePoint(i / TRACK_N));
 const APEX = curvePoint(0.5);
 
@@ -171,25 +171,35 @@ function glowDot(x, y, r, hex, alpha) {
   ctx.globalAlpha = 1;
 }
 
-const PIN_CLEAR_R = 48; // px: не рисуем пунктир поверх аватарок
+/* дуга растворяется у земли: альфа 0 у аватарок, полная в небе (идея: opacity к земле) */
+function trackAlpha(t) {
+  const rampIn = Math.min(1, Math.max(0, (t - 0.12) / 0.18));
+  const rampOut = Math.min(1, Math.max(0, (0.88 - t) / 0.18));
+  const a = Math.min(rampIn, rampOut);
+  return a * a * (3 - 2 * a); // smoothstep
+}
 
-function drawTrack(cam, pinA, pinB) {
+function drawTrack(cam) {
   ctx.save();
-  ctx.setLineDash([6, 8]);
   ctx.lineWidth = 2.5;
-  ctx.strokeStyle = COLORS.track;
+  ctx.lineCap = 'round';
   ctx.shadowColor = 'rgba(160,200,255,.8)';
   ctx.shadowBlur = 6;
-  ctx.beginPath();
-  let started = false;
-  for (const pt of trackPts) {
-    const s = project(pt, cam);
-    const nearPin = s && [pinA, pinB].some(p => p && Math.hypot(s.x - p.x, s.y - p.y) < PIN_CLEAR_R);
-    if (!s || nearPin) { started = false; continue; }
-    if (!started) { ctx.moveTo(s.x, s.y); started = true; }
-    else ctx.lineTo(s.x, s.y);
+  ctx.strokeStyle = '#fff';
+  for (let i = 0; i < TRACK_N; i++) {
+    if (i % 3 === 2) continue; // параметрический пунктир: два сегмента — линия, один — пропуск
+    const a = trackAlpha((i + 0.5) / TRACK_N);
+    if (a <= 0.01) continue;
+    const s1 = project(trackPts[i], cam);
+    const s2 = project(trackPts[i + 1], cam);
+    if (!s1 || !s2) continue;
+    ctx.globalAlpha = 0.65 * a;
+    ctx.beginPath();
+    ctx.moveTo(s1.x, s1.y);
+    ctx.lineTo(s2.x, s2.y);
+    ctx.stroke();
   }
-  ctx.stroke();
+  ctx.globalAlpha = 1;
   ctx.restore();
 }
 
@@ -218,15 +228,15 @@ function drawFrame(now) {
   ctx.clearRect(0, 0, innerWidth, innerHeight);
   const cam = globe.camera().position;
 
-  const pinA = project({ ...CYPRUS, alt: 0.012 }, cam);
-  const pinB = project({ ...MOSCOW, alt: 0.012 }, cam);
-  drawTrack(cam, pinA, pinB);
+  drawTrack(cam);
 
   const ph = (now % PULSE_PERIOD) / PULSE_PERIOD;
 
-  // два сердечка навстречу: старт на границе секунды, столкновение в вершине ровно на следующем тике
-  drawPulse(0.5 * ph, +1, HEART_CY, cam, ph);
-  drawPulse(1 - 0.5 * ph, -1, HEART_MSK, cam, ph);
+  // два сердечка навстречу: старт на границе секунды (чуть выше аватарки, не «из носа»),
+  // столкновение в вершине ровно на следующем тике
+  const T0 = 0.07;
+  drawPulse(T0 + (0.5 - T0) * ph, +1, HEART_CY, cam, ph);
+  drawPulse(1 - T0 - (0.5 - T0) * ph, -1, HEART_MSK, cam, ph);
 
   // вспышка столкновения в вершине — первые 240 мс каждой секунды
   const msIn = now % 1000;
