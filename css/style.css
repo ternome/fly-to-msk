@@ -1,0 +1,188 @@
+:root {
+  --cy: #2ee06f;
+  --msk: #3f8cff;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  background: #000010;
+  color: #fff;
+  overflow: hidden;
+  font-family: 'Unbounded', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#globe { position: fixed; inset: 0; }
+#globe canvas { display: block; }
+
+#fx {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* ---------- верхний HUD с таймером ---------- */
+
+.hud {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 16px);
+  pointer-events: none;
+  text-align: center;
+  text-shadow: 0 2px 18px rgba(0, 0, 20, .8);
+}
+
+.hud__logo {
+  background: #2b16f0;
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: .08em;
+  padding: 9px 20px;
+  border-radius: 999px;
+  box-shadow: 0 6px 24px rgba(30, 20, 220, .55);
+  text-shadow: none;
+}
+
+.timer { display: flex; align-items: flex-start; gap: 7px; }
+
+.timer i {
+  font-style: normal;
+  font-weight: 800;
+  font-size: clamp(26px, 8vw, 54px);
+  line-height: 1;
+  opacity: .6;
+}
+
+.cell { display: flex; flex-direction: column; align-items: center; min-width: 2.2ch; }
+
+.cell span {
+  font-weight: 800;
+  font-size: clamp(30px, 10vw, 60px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  display: inline-block;
+}
+
+.cell small {
+  font-size: 10px;
+  font-weight: 500;
+  opacity: .75;
+  margin-top: 7px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.cell.pop span { animation: pop .32s ease; }
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+
+.hud__sub {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: .9;
+  letter-spacing: .05em;
+}
+
+.hud__arrived {
+  display: none;
+  font-size: clamp(26px, 8vw, 48px);
+  font-weight: 800;
+}
+
+body.arrived .timer,
+body.arrived .hud__sub { display: none; }
+body.arrived .hud__arrived { display: block; }
+
+/* ---------- пины-аватарки ---------- */
+
+.pin {
+  position: relative;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.pin__halo {
+  position: absolute;
+  left: 0; top: 0;
+  width: 96px; height: 96px;
+  border-radius: 50%;
+  border: 3px solid var(--pin-color);
+  animation: halo 1s ease-out infinite;
+}
+
+@keyframes halo {
+  0% { transform: translate(-50%, -50%) scale(.7); opacity: .8; }
+  100% { transform: translate(-50%, -50%) scale(1.22); opacity: 0; }
+}
+
+.pin__photo {
+  position: absolute;
+  left: 0; top: 0;
+  transform: translate(-50%, -50%);
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  overflow: hidden;
+  background: #223;
+  box-shadow: 0 0 0 3px var(--pin-color), 0 8px 24px rgba(0, 0, 10, .55);
+}
+
+.pin__photo img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pin__label {
+  position: absolute;
+  left: 0; top: 46px;
+  transform: translateX(-50%);
+  background: #fff;
+  color: #101020;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: 0 3px 12px rgba(0, 0, 20, .4);
+}
+
+.pin--cy { --pin-color: var(--cy); }
+.pin--msk { --pin-color: var(--msk); }
+
+/* ---------- прочее ---------- */
+
+.attr {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 6px);
+  right: 10px;
+  z-index: 10;
+  font-size: 9px;
+  font-family: system-ui, sans-serif;
+  opacity: .45;
+  pointer-events: none;
+}
+
+@media (max-width: 480px) {
+  .pin__photo { width: 60px; height: 60px; }
+  .pin__halo { width: 82px; height: 82px; }
+  .pin__label { top: 40px; font-size: 10px; }
+}

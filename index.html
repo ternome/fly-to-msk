@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Кипр → Москва · 31.07 19:10</title>
+  <meta name="theme-color" content="#000010">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
+</head>
+<body>
+  <div id="globe"></div>
+  <canvas id="fx"></canvas>
+
+  <header class="hud">
+    <div class="hud__logo">✈️ CY&nbsp;→&nbsp;MSK</div>
+    <div class="timer" id="timer">
+      <div class="cell"><span id="td">––</span><small>дни</small></div><i>:</i>
+      <div class="cell"><span id="th">––</span><small>часы</small></div><i>:</i>
+      <div class="cell"><span id="tm">––</span><small>мин</small></div><i>:</i>
+      <div class="cell cell--s"><span id="ts">––</span><small>сек</small></div>
+    </div>
+    <div class="hud__sub">до посадки в Москве</div>
+    <div class="hud__arrived">Прилетел! 🎉</div>
+  </header>
+
+  <footer class="attr">Sentinel-2 cloudless by EOX · globe.gl</footer>
+
+  <script src="https://unpkg.com/globe.gl@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
+  <script src="js/main.js" defer></script>
+</body>
+</html>
