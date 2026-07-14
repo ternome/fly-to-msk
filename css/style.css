@@ -84,12 +84,18 @@ body {
   text-transform: uppercase;
 }
 
-.cell.pop span { animation: pop .32s ease; }
+.cell.pop span { animation: pop .32s ease, sec-red 50ms linear; }
 
 @keyframes pop {
   0% { transform: scale(1); }
   35% { transform: scale(1.22); }
   100% { transform: scale(1); }
+}
+
+/* на смене секунды цифра на 50 мс вспыхивает красным */
+@keyframes sec-red {
+  from { color: #ff2323; }
+  to { color: #ff2323; }
 }
 
 .hud__sub {

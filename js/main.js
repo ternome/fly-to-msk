@@ -12,10 +12,12 @@ const ARC_ALT = qnum('arc', 0.38); // высота вершины парабол
 const PULSE_PERIOD = 1000;  // цикл пульса = один секундный тик
 
 const COLORS = {
-  cy: '#2ee06f',
-  msk: '#3f8cff',
   track: 'rgba(255,255,255,0.65)',
 };
+
+/* пульсы-сердечки: розовое летит из Лимасола, голубое — из Москвы */
+const HEART_CY = { emoji: '💗', glow: '#ff6bd6' };
+const HEART_MSK = { emoji: '💙', glow: '#4da3ff' };
 
 const TILES = {
   eox: (x, y, l) => `https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2020_3857/default/g/${l}/${y}/${x}.jpg`,
@@ -188,21 +190,24 @@ function drawTrack(cam) {
   ctx.restore();
 }
 
-/* пульс: голова + хвост из тающих точек */
-function drawPulse(tHead, dirSign, hex, cam) {
-  for (let k = 4; k >= 0; k--) {
-    const t = tHead - dirSign * k * 0.032;
+/* пульс-сердечко: голова-эмодзи с «сердцебиением» + хвост из тающих точек */
+function drawPulse(tHead, dirSign, heart, cam, ph) {
+  for (let k = 4; k >= 1; k--) {
+    const t = tHead - dirSign * k * 0.03;
     if (t < 0 || t > 1) continue;
     const s = project(curvePoint(t), cam);
     if (!s) continue;
     const fade = 1 - k / 5.5;
-    if (k === 0) {
-      glowDot(s.x, s.y, 11, hex, 0.95);
-      glowDot(s.x, s.y, 4, '#ffffff', 0.95);
-    } else {
-      glowDot(s.x, s.y, 7 * fade, hex, 0.4 * fade);
-    }
+    glowDot(s.x, s.y, 7 * fade, heart.glow, 0.35 * fade);
   }
+  const s = project(curvePoint(tHead), cam);
+  if (!s) return;
+  glowDot(s.x, s.y, 16, heart.glow, 0.55);
+  const beat = 1 + 0.12 * Math.sin(ph * Math.PI * 4); // два удара за перелёт
+  ctx.font = `${Math.round(22 * beat)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(heart.emoji, s.x, s.y);
 }
 
 function drawFrame(now) {
@@ -214,9 +219,9 @@ function drawFrame(now) {
 
   const ph = (now % PULSE_PERIOD) / PULSE_PERIOD;
 
-  // два пульса навстречу: старт на границе секунды, столкновение в вершине ровно на следующем тике
-  drawPulse(0.5 * ph, +1, COLORS.cy, cam);
-  drawPulse(1 - 0.5 * ph, -1, COLORS.msk, cam);
+  // два сердечка навстречу: старт на границе секунды, столкновение в вершине ровно на следующем тике
+  drawPulse(0.5 * ph, +1, HEART_CY, cam, ph);
+  drawPulse(1 - 0.5 * ph, -1, HEART_MSK, cam, ph);
 
   // вспышка столкновения в вершине — первые 240 мс каждой секунды
   const msIn = now % 1000;
@@ -232,13 +237,20 @@ function drawFrame(now) {
       ctx.stroke();
       ctx.globalAlpha = 1;
       glowDot(s.x, s.y, 30 * (1 - k) + 8, '#ffffff', 1 - k);
+      // на месте столкновения на миг вспыхивают «кружащиеся сердца»
+      ctx.globalAlpha = 1 - k;
+      ctx.font = `${Math.round(26 + k * 18)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('💞', s.x, s.y);
+      ctx.globalAlpha = 1;
     }
   }
 
   // лёгкая рябь на пинах в момент старта пульсов
   if (msIn < 180) {
     const k = msIn / 180;
-    for (const [pt, hex] of [[CYPRUS, COLORS.cy], [MOSCOW, COLORS.msk]]) {
+    for (const [pt, hex] of [[CYPRUS, HEART_CY.glow], [MOSCOW, HEART_MSK.glow]]) {
       const s = project({ ...pt, alt: 0.012 }, cam);
       if (!s) continue;
       ctx.globalAlpha = (1 - k) * 0.5;
