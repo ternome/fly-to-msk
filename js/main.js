@@ -171,7 +171,9 @@ function glowDot(x, y, r, hex, alpha) {
   ctx.globalAlpha = 1;
 }
 
-function drawTrack(cam) {
+const PIN_CLEAR_R = 48; // px: не рисуем пунктир поверх аватарок
+
+function drawTrack(cam, pinA, pinB) {
   ctx.save();
   ctx.setLineDash([6, 8]);
   ctx.lineWidth = 2.5;
@@ -182,7 +184,8 @@ function drawTrack(cam) {
   let started = false;
   for (const pt of trackPts) {
     const s = project(pt, cam);
-    if (!s) { started = false; continue; }
+    const nearPin = s && [pinA, pinB].some(p => p && Math.hypot(s.x - p.x, s.y - p.y) < PIN_CLEAR_R);
+    if (!s || nearPin) { started = false; continue; }
     if (!started) { ctx.moveTo(s.x, s.y); started = true; }
     else ctx.lineTo(s.x, s.y);
   }
@@ -215,7 +218,9 @@ function drawFrame(now) {
   ctx.clearRect(0, 0, innerWidth, innerHeight);
   const cam = globe.camera().position;
 
-  drawTrack(cam);
+  const pinA = project({ ...CYPRUS, alt: 0.012 }, cam);
+  const pinB = project({ ...MOSCOW, alt: 0.012 }, cam);
+  drawTrack(cam, pinA, pinB);
 
   const ph = (now % PULSE_PERIOD) / PULSE_PERIOD;
 
